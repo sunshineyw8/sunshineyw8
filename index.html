@@ -1,60 +1,14 @@
 <!DOCTYPE html>
-
-
-
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Narrative Visualization</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/d3-annotation@2.5.1/dist/d3-annotation.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-
-<h1>Hello Joy</h1>
-<p>Good Night，xiao yangyang.</p>
-
 <body>
     <div id="visualization"></div>
-    <script>
-        // Set up the SVG canvas dimensions
-        const width = 800;
-        const height = 600;
-
-        // Append SVG to the body
-        const svg = d3.select("#visualization")
-                      .append("svg")
-                      .attr("width", width)
-                      .attr("height", height);
-
-        // Example dataset
-        const data = [
-            {x: 50, y: 100},
-            {x: 150, y: 200},
-            {x: 250, y: 300},
-            {x: 350, y: 400},
-            {x: 450, y: 500}
-        ];
-
-        // Create circles for each data point
-        svg.selectAll("circle")
-           .data(data)
-           .enter()
-           .append("circle")
-           .attr("cx", d => d.x)
-           .attr("cy", d => d.y)
-           .attr("r", 20)
-           .style("fill", "blue");
-
-        // Example annotation
-        svg.append("text")
-           .attr("x", 50)
-           .attr("y", 90)
-           .text("Example Data Point")
-           .style("font-size", "12px")
-           .style("fill", "black");
-    </script>
-
-
-
+    <script src="visualization.js"></script>
 </body>
 </html>
