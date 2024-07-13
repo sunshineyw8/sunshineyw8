@@ -72,7 +72,7 @@
                 .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
                 .range(["red", "blue", "blue", "blue", "yellow", "yellow", "yellow", "yellow", "green", "green", "green", "green", "green", "green"]);
 
-            let currentScene = 0;
+            let currentScene = 4;
 
             function updateScene() {
                 svg.selectAll(".annotation, circle").remove();
@@ -84,17 +84,17 @@
                     addAnnotation("red circle represents EngineCylinders = 0", 100, 50, "red");
                 } else if (currentScene === 1) {
                     // Scene 2: EngineCylinders between 0 and 5
-                    const filteredData = data.filter(d => d.EngineCylinders <= 5);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 1 && d.EngineCylinders <= 4);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
                     addAnnotation("blue circles represent EngineCylinders between 0 and 5", 100, 70, "blue");
                 } else if (currentScene === 2) {
                     // Scene 3: EngineCylinders between 4 and 9
-                    const filteredData = data.filter(d => d.EngineCylinders >= 4 && d.EngineCylinders <= 9);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 5 && d.EngineCylinders <= 8);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
                     addAnnotation("yellow circles represent EngineCylinders between 4 and 9", 100, 90, "yellow");
                 } else if (currentScene === 3) {
                     // Scene 4: EngineCylinders between 8 and 13
-                    const filteredData = data.filter(d => d.EngineCylinders >= 8 && d.EngineCylinders <= 13);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 9 && d.EngineCylinders <= 12);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
                     addAnnotation("green circles represent EngineCylinders between 8 and 13", 100, 110, "green");
                 }
@@ -143,7 +143,7 @@
             updateScene();
 
             // Automatic scene change every 3 seconds
-            setInterval(nextScene, 3000);
+            setInterval(nextScene, 1000);
         });
     </script>
 </body>
