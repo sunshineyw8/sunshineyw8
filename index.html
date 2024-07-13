@@ -5,10 +5,146 @@
     <title>Narrative Visualization</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://unpkg.com/d3-annotation@2.5.1/dist/d3-annotation.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        #visualization {
+            width: 80%;
+            height: 80%;
+        }
+
+        .annotation {
+            font-size: 12px;
+            fill: black;
+        }
+    </style>
 </head>
 <body>
     <div id="visualization"></div>
-    <script src="visualization.js"></script>
+    <script>
+        // Set up the SVG canvas dimensions
+        const width = 800;
+        const height = 600;
+        const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+
+        const svg = d3.select("#visualization")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const logScale = d3.scaleLog().base(10).domain([10, 150]).range([margin.left, width - margin.right]);
+        const logScaleY = d3.scaleLog().base(10).domain([10, 150]).range([height - margin.bottom, margin.top]);
+
+        const xAxis = d3.axisBottom(logScale).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s"));
+        const yAxis = d3.axisLeft(logScaleY).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s"));
+
+        // Append the x-axis
+        svg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(xAxis);
+
+        // Append the y-axis
+        svg.append("g")
+            .attr("class", "y-axis")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(yAxis);
+
+        d3.csv("https://flunky.github.io/cars2017.csv").then(data => {
+            data.forEach(d => {
+                d.AverageCityMPG = +d.AverageCityMPG;
+                d.AverageHighwayMPG = +d.AverageHighwayMPG;
+                d.EngineCylinders = +d.EngineCylinders;
+            });
+
+            const colorScale = d3.scaleOrdinal()
+                .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+                .range(["red", "blue", "blue", "blue", "yellow", "yellow", "yellow", "yellow", "green", "green", "green", "green", "green", "green"]);
+
+            let currentScene = 0;
+
+            function updateScene() {
+                svg.selectAll(".annotation, circle").remove();
+
+                if (currentScene === 0) {
+                    // Scene 1: EngineCylinders = 0
+                    const filteredData = data.filter(d => d.EngineCylinders === 0);
+                    drawCircles(filteredData, "red");
+                    addAnnotation("red circle represents EngineCylinders = 0", 100, 50, "red");
+                } else if (currentScene === 1) {
+                    // Scene 2: EngineCylinders between 0 and 5
+                    const filteredData = data.filter(d => d.EngineCylinders <= 5);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("blue circles represent EngineCylinders between 0 and 5", 100, 70, "blue");
+                } else if (currentScene === 2) {
+                    // Scene 3: EngineCylinders between 4 and 9
+                    const filteredData = data.filter(d => d.EngineCylinders >= 4 && d.EngineCylinders <= 9);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("yellow circles represent EngineCylinders between 4 and 9", 100, 90, "yellow");
+                } else if (currentScene === 3) {
+                    // Scene 4: EngineCylinders between 8 and 13
+                    const filteredData = data.filter(d => d.EngineCylinders >= 8 && d.EngineCylinders <= 13);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("green circles represent EngineCylinders between 8 and 13", 100, 110, "green");
+                }
+            }
+
+            function drawCircles(data, color) {
+                svg.selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => logScale(d.AverageCityMPG))
+                    .attr("cy", d => logScaleY(d.AverageHighwayMPG))
+                    .attr("r", d => 2 + d.EngineCylinders)
+                    .attr("fill", color);
+            }
+
+            function addAnnotation(text, x, y, color) {
+                const annotation = [{
+                    note: {
+                        label: text,
+                        title: "",
+                        align: "left",
+                        wrap: 200
+                    },
+                    x: x,
+                    y: y,
+                    dy: -30,
+                    dx: 0,
+                    color: color
+                }];
+
+                const makeAnnotations = d3.annotation()
+                    .type(d3.annotationLabel)
+                    .annotations(annotation);
+
+                svg.append("g")
+                    .attr("class", "annotation-group")
+                    .call(makeAnnotations);
+            }
+
+            function nextScene() {
+                currentScene = (currentScene + 1) % 4;
+                updateScene();
+            }
+
+            updateScene();
+
+            // Automatic scene change every 3 seconds
+            setInterval(nextScene, 3000);
+        });
+    </script>
 </body>
 </html>
