@@ -21,12 +21,14 @@
         #visualization {
             width: 80%;
             height: 80%;
+            position: relative;
         }
 
         .annotation {
             font-size: 12px;
             fill: black;
         }
+
         .tooltip {
             position: absolute;
             text-align: left;
@@ -41,18 +43,33 @@
         }
 
         .dropdown {
-            margin-bottom: 20px;
+            position: absolute;
+            right: 100px;
+            bottom: 150px;
+            margin: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            fill: blue;
+            text-anchor: middle;
+        }
+
+        .axis-label {
+            font-size: 14px;
+            text-anchor: middle;
         }
     </style>
 </head>
 <body>
-    <select id="dropdown" class="dropdown"></select>
-    <div id="visualization"></div>
+    <div id="visualization">
+        <select id="dropdown" class="dropdown"></select>
+    </div>
     <script>
         // Set up the SVG canvas dimensions
         const width = 800;
         const height = 600;
-        const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+        const margin = { top: 80, right: 50, bottom: 70, left: 80 };
 
         const svg = d3.select("#visualization")
             .append("svg")
@@ -79,21 +96,36 @@
             .attr("transform", `translate(${margin.left},0)`)
             .call(yAxis);
 
-        const tooltip = d3.select("body").append("div").attr("class",
-            "tooltip").style("opacity", 0);
+        // Add x-axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", (width + margin.left - margin.right) / 2)
+            .attr("y", height - 30)
+            .text("Average City MPG");
 
+        // Add y-axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -(height - margin.top - margin.bottom) / 2 - margin.top)
+            .attr("y", 20)
+            .text("Average Highway MPG");
+
+        // Add title
+        svg.append("text")
+            .attr("class", "title")
+            .attr("x", (width + margin.left - margin.right) / 2)
+            .attr("y", margin.top / 2)
+            .text("Average Highway and City MPG for Vehicles");
+
+        const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
         d3.csv("https://flunky.github.io/cars2017.csv").then(data => {
             data.forEach(d => {
                 d.AverageCityMPG = +d.AverageCityMPG;
                 d.AverageHighwayMPG = +d.AverageHighwayMPG;
                 d.EngineCylinders = +d.EngineCylinders;
-
             });
-
-
-
-
 
             const colorScale = d3.scaleOrdinal()
                 .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
@@ -106,55 +138,74 @@
 
                 if (currentScene === 0) {
                     // Scene 0: Starting
-
-
                 } else if (currentScene === 1) {
-                    // Scene 1: EngineCylinders = 0
-                    const filteredData = data.filter(d => d.EngineCylinders === 0);
-                    drawCircles(filteredData, "red");
-                    addAnnotation("Red Circle is Electrical Cars", 600, 100, "red");
+                    // Scene 1: EngineCylinders = 9 to 12
+                    const filteredData = data.filter(d => d.EngineCylinders >= 9);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
                 } else if (currentScene === 2) {
-                    // Scene 2: EngineCylinders between 0 and 5
-                    const filteredData = data.filter(d => d.EngineCylinders <= 4);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 9);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
-                    addAnnotation("Red Circle is Electrical Cars", 600, 100, "red");
-                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
                 } else if (currentScene === 3) {
-                    // Scene 3: EngineCylinders between 4 and 9
-                    const filteredData = data.filter(d => d.EngineCylinders >= 0 && d.EngineCylinders <= 8);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 5);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
-                    addAnnotation("Red Circle is Electrical Cars", 600, 100, "red");
-                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
-                    addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
                 } else if (currentScene === 4) {
-                    // Scene 4: EngineCylinders between 8 and 13
-                    const filteredData = data.filter(d => d.EngineCylinders >= 0 && d.EngineCylinders <= 12);
+                    const filteredData = data.filter(d => d.EngineCylinders >= 5);
                     drawCircles(filteredData, d => colorScale(d.EngineCylinders));
-                    addAnnotation("Red Circle is Electrical Cars", 600, 100, "red");
-                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
                     addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
-                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 0, 420, "green");
-                }else if (currentScene === 5) {
-                    // Scene 5: Expore
-                    //const filteredData = data.filter(d => d.EngineCylinders >= 0 && d.EngineCylinders <= 12);
-                    //drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                } else if (currentScene === 5) {
+                    const filteredData = data.filter(d => d.EngineCylinders >= 1);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
+                    addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
+                } else if (currentScene === 6) {
+                    const filteredData = data.filter(d => d.EngineCylinders >= 1);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
+                    addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
+                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
+                } else if (currentScene === 7) {
+                    const filteredData = data.filter(d => d.EngineCylinders >= 0);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
+                    addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
+                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
+                } else if (currentScene === 8) {
+                    const filteredData = data.filter(d => d.EngineCylinders >= 0);
+                    drawCircles(filteredData, d => colorScale(d.EngineCylinders));
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
+                    addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
+                    addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
+                    addAnnotation("Red Circle is Electrical Cars", 600, 120, "red");
+
+
+
+
+
+                } else if (currentScene === 9) {
+                    // Scene 5: Explore
                     drawCircles(data, d => colorScale(d.EngineCylinders));
-                    addAnnotation("Red Circle is Electrical Cars", 600, 100, "red");
+                    addAnnotation("Red Circle is Electrical Cars", 600, 120, "red");
                     addAnnotation("Blue Circles is EngineCylinders between 1 and 4", 200, 300, "blue");
                     addAnnotation("Yellow Circles is EngineCylinders between 5 and 8", 70, 380, "orange");
-                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 0, 420, "green");
-
-
+                    addAnnotation("Green Circles is EngineCylinders between 9 and 12", 15, 540, "green");
 
                     svg.selectAll("circle")
                         .on("mouseover", function(event, d) {
+                            // Get all data points at the same location
+                            const sameLocationData = data.filter(dp => logScale(dp.AverageCityMPG) === logScale(d.AverageCityMPG) && logScaleY(dp.AverageHighwayMPG) === logScaleY(d.AverageHighwayMPG));
+                            const tooltipHtml = sameLocationData.map(dp => `Make: ${dp.Make}<br>Fuel: ${dp.Fuel}<br>EngineCylinders: ${dp.EngineCylinders}<br>AverageHighwayMPG: ${dp.AverageHighwayMPG}<br>AverageCityMPG: ${dp.AverageCityMPG}`).join("<br><br>");
+
                             tooltip.transition().duration(200).style("opacity", .9);
-                            tooltip.html(`Make: ${d.Make}<br>Fuel: ${d.Fuel}<br>EngineCylinders: ${d.EngineCylinders}<br>AverageHighwayMPG: ${d.AverageHighwayMPG}<br>AverageCityMPG: ${d.AverageCityMPG}`)
+                            tooltip.html(tooltipHtml)
                                 .style("left", (event.pageX + 5) + "px")
                                 .style("top", (event.pageY - 28) + "px");
+
                             d3.select(this).attr("stroke", "black").attr("stroke-width", 3);
                         })
-                        .on("mouseout", function(d) {
+                        .on("mouseout", function() {
                             tooltip.transition().duration(500).style("opacity", 0);
                             d3.select(this).attr("stroke", null);
                         });
@@ -174,13 +225,7 @@
                         svg.selectAll("circle")
                             .attr("opacity", d => d.Make === selectedMake ? 1 : 0.05);
                     });
-
-
-
-
                 }
-
-
             }
 
             function drawCircles(data, color) {
@@ -190,8 +235,7 @@
                     .append("circle")
                     .attr("cx", d => logScale(d.AverageCityMPG))
                     .attr("cy", d => logScaleY(d.AverageHighwayMPG))
-                    //.attr("r", d => 2 + d.EngineCylinders)
-                    .attr("r", d => 4)
+                    .attr("r", 4)
                     .attr("fill", color);
             }
 
@@ -219,29 +263,13 @@
                     .call(makeAnnotations);
             }
 
-            //function nextScene() {
-            //    currentScene = (currentScene + 1) % 6;
-            //    updateScene();
-           // }
-
-
             function nextScene() {
-                //currentScene++;
-                //updateScene();
-
-                if (currentScene <= 4) {
-                    //clearInterval(sceneInterval);
-                  currentScene++;
-                  updateScene();
-
+                if (currentScene <= 8) {
+                    currentScene++;
+                    updateScene();
                 }
             }
 
-
-
-           // updateScene();
-
-            // Automatic scene change every 3 seconds
             setInterval(nextScene, 2000);
         });
     </script>
